@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>ZYRØ Admin Portal — MUZZ CRIB</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              zyro: {
+                50: "#fdf2f8",
+                100: "#fce7f3",
+                500: "#ec4899",
+                600: "#db2777",
+                900: "#831843",
+                dark: "#0a0a0c",
+                card: "#121216",
+                border: "#27272a",
+              },
+            },
+            fontFamily: {
+              sans: ["Inter", "sans-serif"],
+              display: ["Outfit", "sans-serif"],
+            },
+          },
+        },
+      };
+    </script>
+    <!-- Google Fonts -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;700;800;900&display=swap"
+      rel="stylesheet"
+    />
+    <!-- FontAwesome Icons -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <!-- QR Code Scanner Library -->
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+
+    <!-- Admin CSS -->
+    <link rel="stylesheet" href="admin.css" />
+  </head>
+  <body class="min-h-screen bg-[#0a0a0c] text-zinc-100 selection:bg-pink-500 selection:text-white pb-12">
+    <!-- TOP NAVIGATION -->
+    <nav class="sticky top-0 z-50 glass-panel border-b border-zinc-800 px-4 py-3">
+      <div class="max-w-6xl mx-auto flex items-center justify-between">
+        <div class="flex items-center space-x-2.5">
+          <div
+            class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-pink-600 to-purple-600 flex items-center justify-center font-black text-xl text-white tracking-wider glow-pink"
+          >
+            Z
+          </div>
+          <div>
+            <span class="font-display font-extrabold text-lg text-white block leading-tight">ZYRØ ADMIN</span>
+            <span class="text-[10px] text-zinc-400">THE HAZE EXPERIENCE</span>
+          </div>
+        </div>
+
+        <div class="flex items-center space-x-3">
+          <a
+            href="index.html"
+            class="px-3.5 py-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-xs font-semibold text-zinc-300 transition border border-zinc-800"
+          >
+            <i class="fa-solid fa-store mr-1.5"></i> Live Site
+          </a>
+          <button
+            id="logout-btn"
+            onclick="adminLogout()"
+            class="hidden px-3.5 py-2 rounded-xl bg-red-500/20 hover:bg-red-500/30 text-xs font-semibold text-red-300 transition border border-red-500/30"
+          >
+            <i class="fa-solid fa-right-from-bracket mr-1.5"></i> Logout
+          </button>
+        </div>
+      </div>
+    </nav>
+
+    <!-- MAIN CONTAINER -->
+    <main class="max-w-6xl mx-auto px-4 py-8" id="admin-main">
+      <!-- Renders Login or Dashboard -->
+    </main>
+
+    <!-- CAMERA GATE SCANNER MODAL -->
+    <div
+      id="scanner-modal"
+      class="fixed inset-0 z-50 bg-black/95 backdrop-blur-lg hidden flex items-center justify-center p-4"
+    >
+      <div class="glass-panel w-full max-w-md rounded-3xl p-6 border border-zinc-800 relative glow-purple">
+        <button
+          onclick="closeScannerModal()"
+          class="absolute top-4 right-4 text-zinc-400 hover:text-white w-8 h-8 rounded-full bg-zinc-900 flex items-center justify-center"
+        >
+          <i class="fa-solid fa-xmark text-sm"></i>
+        </button>
+
+        <h3 class="font-display font-bold text-xl text-white mb-1">
+          Gate Entrance Scanner
+        </h3>
+        <p class="text-xs text-zinc-400 mb-4">
+          Point camera at attendee QR ticket to check in.
+        </p>
+
+        <div id="reader" class="rounded-2xl overflow-hidden mb-4 border border-zinc-800 bg-black"></div>
+
+        <div
+          id="scan-result"
+          class="p-4 rounded-2xl bg-zinc-900 border border-zinc-800 text-center text-sm font-medium text-zinc-300"
+        >
+          Ready to scan ticket...
+        </div>
+
+        <button
+          onclick="closeScannerModal()"
+          class="mt-4 w-full py-3 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded-xl text-xs font-semibold transition"
+        >
+          Close Scanner
+        </button>
+      </div>
+    </div>
+
+    <script>
+      const ADMIN_EMAIL = "muzzcrib@gmail.com";
+      const ADMIN_PASS = "Godsent5";
+
+      let orders = [];
+      let tickets = [];
+      let html5QrCode = null;
+      let searchQuery = "";
+      let statusFilter = "all";
+
+      function loadAdminData() {
+        const storedOrders = localStorage.getItem("zyro_orders");
+        const storedTickets = localStorage.getItem("zyro_tickets");
+
+        if (storedOrders) {
+          orders = JSON.parse(storedOrders);
+        } else {
+          orders = [];
+        }
+
+        if (storedTickets) {
+          tickets = JSON.parse(storedTickets);
+        }
+      }
+
+      function saveAdminData() {
+        localStorage.setItem("zyro_orders", JSON.stringify(orders));
+        localStorage.setItem("zyro_tickets", JSON.stringify(tickets));
+      }
+
+      document.addEventListener("DOMContentLoaded", () => {
+        loadAdminData();
+        checkAdminSession();
+      });
+
+      function checkAdminSession() {
+        const isLoggedIn = sessionStorage.getItem("zyro_admin_auth") === "true";
+        if (isLoggedIn) {
+          document.getElementById("logout-btn").classList.remove("hidden");
+          renderDashboard();
+        } else {
+          document.getElementById("logout-btn").classList.add("hidden");
+          renderLogin();
+        }
+      }
+
+      function handleAdminLogin(e) {
+        e.preventDefault();
+        const email = document.getElementById("admin-email").value;
+        const pass = document.getElementById("admin-pass").value;
+
+        if (email === ADMIN_EMAIL && pass === ADMIN_PASS) {
+          sessionStorage.setItem("zyro_admin_auth", "true");
+          checkAdminSession();
+        } else {
+          alert("Invalid admin email or password.");
+        }
+      }
+
+      function adminLogout() {
+        sessionStorage.removeItem("zyro_admin_auth");
+        checkAdminSession();
+      }
+
+      function renderLogin() {
+        const container = document.getElementById("admin-main");
+        container.innerHTML = `
+          <div class="max-w-md mx-auto py-12">
+            <div class="glass-panel p-8 rounded-3xl border border-zinc-800 text-center glow-purple">
+              <div class="w-16 h-16 bg-pink-500/20 text-pink-500 rounded-2xl flex items-center justify-center mx-auto mb-4 text-2xl border border-pink-500/30">
+                <i class="fa-solid fa-lock"></i>
+              </div>
+              <h2 class="font-display font-extrabold text-2xl text-white mb-1">Admin Verification</h2>
+              <p class="text-xs text-zinc-400 mb-6">Enter management password to view ticket sales & gate records.</p>
+              
+              <form onsubmit="handleAdminLogin(event)" class="space-y-4 text-left">
+                <div>
+                  <label class="block text-xs font-semibold text-zinc-300 mb-1.5 uppercase tracking-wider">Admin Email</label>
+                  <input type="email" id="admin-email" required placeholder="admin@zyro.com" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-pink-500">
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold text-zinc-300 mb-1.5 uppercase tracking-wider">Password</label>
+                  <input type="password" id="admin-pass" required placeholder="Enter password" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-pink-500">
+                </div>
+                <button type="submit" class="w-full py-3.5 bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600 hover:opacity-95 text-white font-display font-bold rounded-xl text-xs transition shadow-lg shadow-pink-600/30">
+                  Access Portal
+                </button>
+              </form>
+            </div>
+          </div>
+        `;
+      }
+
+      function renderDashboard() {
+        const container = document.getElementById("admin-main");
+        loadAdminData();
+
+        const totalRevenue = orders.reduce((sum, o) => sum + o.total, 0);
+        const totalTicketsSold = orders.reduce((sum, o) => sum + o.qty, 0);
+        const totalOrdersCount = orders.length;
+        const checkedInCount = orders.filter((o) => o.scanned).length;
+
+        container.innerHTML = `
+          <!-- STATS CARDS -->
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            <div class="glass-panel p-5 rounded-2xl border border-zinc-800">
+              <span class="text-[11px] font-semibold uppercase tracking-wider text-zinc-400">Total Revenue</span>
+              <div class="font-display font-black text-2xl text-white mt-1">₦${totalRevenue.toLocaleString()}</div>
+            </div>
+            <div class="glass-panel p-5 rounded-2xl border border-zinc-800">
+              <span class="text-[11px] font-semibold uppercase tracking-wider text-zinc-400">Tickets Sold</span>
+              <div class="font-display font-black text-2xl text-pink-400 mt-1">${totalTicketsSold}</div>
+            </div>
+            <div class="glass-panel p-5 rounded-2xl border border-zinc-800">
+              <span class="text-[11px] font-semibold uppercase tracking-wider text-zinc-400">Total Orders</span>
+              <div class="font-display font-black text-2xl text-white mt-1">${totalOrdersCount}</div>
+            </div>
+            <div class="glass-panel p-5 rounded-2xl border border-zinc-800">
+              <span class="text-[11px] font-semibold uppercase tracking-wider text-zinc-400">Checked-In Gate</span>
+              <div class="font-display font-black text-2xl text-emerald-400 mt-1">${checkedInCount} / ${totalOrdersCount}</div>
+            </div>
+          </div>
+
+          <!-- CONTROLS & SEARCH BAR ROW -->
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+            <div>
+              <h3 class="font-display font-extrabold text-xl text-white">Ticket Buyers & Attendees</h3>
+              <p class="text-xs text-zinc-400">Manage attendee check-ins and search records</p>
+            </div>
+            <div class="flex flex-wrap items-center gap-2">
+              <button onclick="openScannerModal()" class="px-4 py-2.5 bg-gradient-to-r from-pink-600 to-purple-600 hover:opacity-90 text-white rounded-xl text-xs font-bold shadow-lg shadow-pink-600/20 flex items-center space-x-2">
+                <i class="fa-solid fa-qrcode text-sm"></i>
+                <span>Open Gate Scanner</span>
+              </button>
+              <button onclick="exportCSV()" class="px-3.5 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded-xl text-xs font-semibold border border-zinc-700">
+                <i class="fa-solid fa-file-csv mr-1"></i> Export CSV
+              </button>
+              <button onclick="clearAllRecords()" class="px-3.5 py-2.5 bg-red-600/20 hover:bg-red-600/40 text-red-300 rounded-xl text-xs font-semibold border border-red-500/30 transition">
+                <i class="fa-solid fa-trash-can mr-1"></i> Clear All Records
+              </button>
+            </div>
+          </div>
+
+          <!-- SEARCH & FILTER INPUTS -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6">
+            <div class="relative md:col-span-2">
+              <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 text-xs"></i>
+              <input
+                type="text"
+                id="attendee-search"
+                value="${searchQuery}"
+                oninput="handleSearch(this.value)"
+                placeholder="Search by name, email, phone, tier, or ref code..."
+                class="w-full bg-zinc-900 border border-zinc-800 rounded-xl pl-10 pr-4 py-2.5 text-xs text-white focus:outline-none focus:border-pink-500 placeholder:text-zinc-500"
+              />
+            </div>
+            <div>
+              <select
+                id="status-filter"
+                onchange="handleFilterChange(this.value)"
+                class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-pink-500 cursor-pointer"
+              >
+                <option value="all" ${statusFilter === "all" ? "selected" : ""}>All Attendees</option>
+                <option value="checked" ${statusFilter === "checked" ? "selected" : ""}>Checked-In Only</option>
+                <option value="unchecked" ${statusFilter === "unchecked" ? "selected" : ""}>Not Checked-In Only</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- ORDERS TABLE -->
+          <div class="glass-panel rounded-3xl border border-zinc-800 overflow-hidden shadow-2xl">
+            <div class="overflow-x-auto">
+              <table class="w-full text-left">
+                <thead>
+                  <tr class="bg-zinc-900/90 border-b border-zinc-800 text-[10px] text-zinc-400 uppercase tracking-wider">
+                    <th class="py-3 px-4">Ref Code</th>
+                    <th class="py-3 px-4">Customer Name</th>
+                    <th class="py-3 px-4">Contact Info</th>
+                    <th class="py-3 px-4">Tier & Qty</th>
+                    <th class="py-3 px-4">Amount</th>
+                    <th class="py-3 px-4">Payment</th>
+                    <th class="py-3 px-4">Gate Status</th>
+                  </tr>
+                </thead>
+                <tbody id="table-body">
+                  ${renderTableRows()}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        `;
+      }
+
+      function filterOrders() {
+        return orders.filter((o) => {
+          const q = searchQuery.toLowerCase().trim();
+          const matchesQuery =
+            !q ||
+            o.name.toLowerCase().includes(q) ||
+            o.email.toLowerCase().includes(q) ||
+            o.phone.toLowerCase().includes(q) ||
+            o.ref.toLowerCase().includes(q) ||
+            o.tier.toLowerCase().includes(q);
+
+          const matchesStatus =
+            statusFilter === "all" ||
+            (statusFilter === "checked" && o.scanned) ||
+            (statusFilter === "unchecked" && !o.scanned);
+
+          return matchesQuery && matchesStatus;
+        });
+      }
+
+      function renderTableRows() {
+        const filtered = filterOrders();
+        if (!filtered.length) {
+          return `<tr><td colspan="7" class="text-center py-8 text-zinc-500 text-xs">No matching attendee records found.</td></tr>`;
+        }
+
+        return filtered
+          .map((o) => {
+            const originalIndex = orders.findIndex((item) => item.ref === o.ref);
+            return `
+              <tr class="border-b border-zinc-800/80 hover:bg-zinc-900/40 text-xs">
+                <td class="py-3.5 px-4 font-mono text-pink-400 font-semibold">${o.ref}</td>
+                <td class="py-3.5 px-4 font-medium text-white">${o.name}</td>
+                <td class="py-3.5 px-4 text-zinc-300">${o.email}<br><span class="text-[10px] text-zinc-500">${o.phone}</span></td>
+                <td class="py-3.5 px-4 text-zinc-200"><span class="px-2 py-0.5 rounded bg-zinc-800 text-zinc-300 text-[11px] font-medium">${o.tier} (${o.qty}x)</span></td>
+                <td class="py-3.5 px-4 font-display font-semibold text-white">₦${o.total.toLocaleString()}</td>
+                <td class="py-3.5 px-4">
+                  <span class="px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-400 text-[10px] font-semibold border border-emerald-500/30">${o.status}</span>
+                </td>
+                <td class="py-3.5 px-4">
+                  ${
+                    o.scanned
+                      ? `<span onclick="toggleCheckIn(${originalIndex})" class="px-2.5 py-1 rounded-full bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 text-[10px] font-semibold border border-purple-500/30 cursor-pointer transition"><i class="fa-solid fa-check mr-1"></i>Checked-In</span>`
+                      : `<button onclick="toggleCheckIn(${originalIndex})" class="px-2.5 py-1 rounded-full bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-[10px] font-semibold border border-zinc-700 transition">Mark Arrived</button>`
+                  }
+                </td>
+              </tr>
+            `;
+          })
+          .join("");
+      }
+
+      function handleSearch(val) {
+        searchQuery = val;
+        document.getElementById("table-body").innerHTML = renderTableRows();
+      }
+
+      function handleFilterChange(val) {
+        statusFilter = val;
+        document.getElementById("table-body").innerHTML = renderTableRows();
+      }
+
+      function toggleCheckIn(index) {
+        orders[index].scanned = !orders[index].scanned;
+        saveAdminData();
+        renderDashboard();
+      }
+
+      function clearAllRecords() {
+        const confirmClear = confirm("Are you sure you want to PERMANENTLY CLEAR all ticket sales and attendee records?");
+        if (confirmClear) {
+          orders = [];
+          if (tickets && tickets.length) {
+            tickets.forEach((t) => (t.sold = 0));
+          }
+          saveAdminData();
+          renderDashboard();
+          alert("All attendee records and sales statistics have been cleared.");
+        }
+      }
+
+      function exportCSV() {
+        const dataToExport = filterOrders();
+        if (!dataToExport.length) return alert("No data to export.");
+        let csvContent = "data:text/csv;charset=utf-8,Reference,Name,Email,Phone,Tier,Qty,Total,Status,Scanned\n";
+        dataToExport.forEach((o) => {
+          csvContent += `"${o.ref}","${o.name}","${o.email}","${o.phone}","${o.tier}",${o.qty},${o.total},"${o.status}",${o.scanned}\n`;
+        });
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", "zyro_attendees_filtered.csv");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+
+      // --- CAMERA SCANNER INTEGRATION ---
+      function openScannerModal() {
+        document.getElementById("scanner-modal").classList.remove("hidden");
+        setTimeout(() => {
+          if (!html5QrCode) {
+            html5QrCode = new Html5Qrcode("reader");
+          }
+          html5QrCode
+            .start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, onScanSuccess, onScanFailure)
+            .catch((err) => {
+              document.getElementById("scan-result").innerHTML = `<span class="text-red-400">Camera access error or unavailable.</span>`;
+            });
+        }, 150);
+      }
+
+      function onScanSuccess(decodedText) {
+        const resultBox = document.getElementById("scan-result");
+        const matchedOrder = orders.find((o) => decodedText.includes(o.ref));
+
+        if (matchedOrder) {
+          if (matchedOrder.scanned) {
+            resultBox.innerHTML = `<div class="text-amber-400 font-bold p-2 bg-amber-500/10 rounded-xl border border-amber-500/20"><i class="fa-solid fa-triangle-exclamation mr-1"></i> ALREADY USED<br><span class="text-xs text-zinc-300 font-normal">${matchedOrder.name} (${matchedOrder.tier})</span></div>`;
+          } else {
+            matchedOrder.scanned = true;
+            saveAdminData();
+            renderDashboard();
+            resultBox.innerHTML = `<div class="text-emerald-400 font-bold p-2 bg-emerald-500/10 rounded-xl border border-emerald-500/20"><i class="fa-solid fa-circle-check mr-1"></i> ACCESS GRANTED<br><span class="text-xs text-zinc-300 font-normal">${matchedOrder.name} - ${matchedOrder.tier}</span></div>`;
+          }
+        } else {
+          resultBox.innerHTML = `<div class="text-red-400 font-bold p-2 bg-red-500/10 rounded-xl border border-red-500/20"><i class="fa-solid fa-circle-xmark mr-1"></i> INVALID TICKET ID: ${decodedText}</div>`;
+        }
+      }
+
+      function onScanFailure(error) {}
+
+      function closeScannerModal() {
+        if (html5QrCode) {
+          html5QrCode
+            .stop()
+            .then(() => {
+              document.getElementById("scanner-modal").classList.add("hidden");
+            })
+            .catch(() => {
+              document.getElementById("scanner-modal").classList.add("hidden");
+            });
+        } else {
+          document.getElementById("scanner-modal").classList.add("hidden");
+        }
+      }
+    </script>
+  </body>
+</html>

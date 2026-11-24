@@ -6,7 +6,7 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
     />
-    <title>ZYRØ — Official Event Ticketing</title>
+    <title>ZYRØ — THE HAZE EXPERIENCE (MUZZ CRIB)</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -44,96 +44,24 @@
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
     />
-    <!-- Paystack Checkout Inline Script -->
+    <!-- Paystack & Helper Libraries -->
     <script src="https://js.paystack.co/v1/inline.js"></script>
-    <!-- QR Code Generator & Scanner Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <script
-      src="https://unpkg.com/html5-qrcode"
-      type="text/javascript"
-    ></script>
-    <!-- jsPDF for PDF ticket generation -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
-    <style>
-      body {
-        font-family: "Inter", sans-serif;
-        background-color: #0a0a0c;
-        color: #f4f4f5;
-        overflow-x: hidden;
-      }
-      h1,
-      h2,
-      h3,
-      h4,
-      .font-display {
-        font-family: "Outfit", sans-serif;
-      }
-      .glass-panel {
-        background: rgba(18, 18, 22, 0.75);
-        backdrop-filter: blur(16px);
-        border: 1px solid rgba(255, 255, 255, 0.08);
-      }
-      .glow-pink {
-        box-shadow: 0 0 45px -5px rgba(236, 72, 153, 0.45);
-      }
-      .glow-purple {
-        box-shadow: 0 0 45px -5px rgba(147, 51, 234, 0.35);
-      }
-
-      /* 3D Tilt Card Styles */
-      .tilt-card {
-        transform-style: preserve-3d;
-        perspective: 1000px;
-        transition:
-          transform 0.1s ease,
-          box-shadow 0.3s ease;
-      }
-      .tilt-card-content {
-        transform: translateZ(30px);
-      }
-
-      @keyframes pulseGlow {
-        0%,
-        100% {
-          opacity: 0.3;
-          transform: scale(1);
-        }
-        50% {
-          opacity: 0.6;
-          transform: scale(1.05);
-        }
-      }
-      .ambient-blob {
-        animation: pulseGlow 8s infinite ease-in-out;
-      }
-
-      .hide-scrollbar::-webkit-scrollbar {
-        display: none;
-      }
-      .hide-scrollbar {
-        -ms-overflow-style: none;
-        scrollbar-width: none;
-      }
-    </style>
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="style.css" />
   </head>
-  <body
-    class="min-h-screen selection:bg-pink-500 selection:text-white pb-24 relative"
-  >
+  <body class="min-h-screen selection:bg-pink-500 selection:text-white pb-24 relative">
     <!-- AMBIENT BACKGROUND GLOWS -->
     <div
       class="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[350px] bg-gradient-to-tr from-pink-600/20 to-purple-600/20 blur-[120px] rounded-full pointer-events-none ambient-blob -z-10"
     ></div>
 
     <!-- TOP NAVIGATION BAR -->
-    <nav
-      class="sticky top-0 z-50 glass-panel border-b border-zyro-border px-4 py-3"
-    >
+    <nav class="sticky top-0 z-50 glass-panel border-b border-zyro-border px-4 py-3">
       <div class="max-w-4xl mx-auto flex items-center justify-between">
-        <div
-          class="flex items-center space-x-2.5 cursor-pointer group"
-          onclick="switchView('store')"
-        >
+        <div class="flex items-center space-x-2.5 cursor-pointer group" onclick="switchView('store')">
           <div
             class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-pink-600 to-purple-600 flex items-center justify-center font-black text-xl text-white tracking-wider glow-pink group-hover:rotate-12 transition duration-300"
           >
@@ -146,20 +74,13 @@
         </div>
 
         <div class="flex items-center space-x-2.5">
-          <button
-            onclick="openScannerModal()"
-            class="px-3.5 py-2 rounded-xl bg-zinc-900/80 hover:bg-zinc-800 text-xs font-semibold text-zinc-200 transition border border-zinc-800 flex items-center space-x-1.5 shadow-lg"
-          >
-            <i class="fa-solid fa-qrcode text-pink-400"></i>
-            <span>Gate Scanner</span>
-          </button>
-          <button
-            onclick="openAdminModal()"
+          <a
+            href="admin.html"
             class="px-3.5 py-2 rounded-xl bg-pink-600/20 hover:bg-pink-600/30 text-xs font-semibold text-pink-300 transition border border-pink-500/30 flex items-center space-x-1.5 shadow-lg"
           >
             <i class="fa-solid fa-shield-halved"></i>
-            <span>Admin</span>
-          </button>
+            <span>Admin Portal</span>
+          </a>
         </div>
       </div>
     </nav>
@@ -187,43 +108,36 @@
           Complete Order
         </h3>
         <p id="checkout-summary-subtitle" class="text-xs text-zinc-400 mb-6">
-          Enter attendee details for instant ticket generation.
+          Pay securely via Paystack for instant QR &amp; PDF ticket passes.
         </p>
 
-        <form
-          id="checkout-form"
-          onsubmit="processPaystackPayment(event)"
-          class="space-y-4"
-        >
+        <form id="checkout-form" onsubmit="processPaystackPayment(event)" class="space-y-4">
           <div>
-            <label
-              class="block text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-1.5"
+            <label class="block text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-1.5"
               >Full Name</label
             >
             <input
               type="text"
               id="buyer-name"
               required
-              placeholder="Oluwatimilehin Ojo"
+              placeholder="Enter your full name"
               class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-pink-500"
             />
           </div>
           <div>
-            <label
-              class="block text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-1.5"
-              >Email Address (for instant PDF tickets)</label
+            <label class="block text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-1.5"
+              >Email Address (for Paystack receipt &amp; passes)</label
             >
             <input
               type="email"
               id="buyer-email"
               required
-              placeholder="ojo@example.com"
+              placeholder="attendee@example.com"
               class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-pink-500"
             />
           </div>
           <div>
-            <label
-              class="block text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-1.5"
+            <label class="block text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-1.5"
               >Phone Number</label
             >
             <input
@@ -235,22 +149,14 @@
             />
           </div>
 
-          <div
-            class="bg-zinc-900/90 rounded-2xl p-4 border border-zinc-800 space-y-2 my-4"
-          >
+          <div class="bg-zinc-900/90 rounded-2xl p-4 border border-zinc-800 space-y-2 my-4">
             <div class="flex justify-between text-xs text-zinc-400">
               <span id="checkout-tier-label">Ticket Type</span>
               <span id="checkout-qty-label">Qty: 1</span>
             </div>
-            <div
-              class="flex justify-between text-sm font-semibold text-white pt-2 border-t border-zinc-800"
-            >
-              <span>Total Amount</span>
-              <span
-                id="checkout-total-price"
-                class="text-pink-400 font-display text-lg"
-                >₦0</span
-              >
+            <div class="flex justify-between text-sm font-semibold text-white pt-2 border-t border-zinc-800">
+              <span>Total Amount (NGN)</span>
+              <span id="checkout-total-price" class="text-pink-400 font-display text-lg">₦0</span>
             </div>
           </div>
 
@@ -259,7 +165,7 @@
             class="w-full py-3.5 bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600 hover:opacity-95 text-white font-display font-bold rounded-2xl shadow-xl shadow-pink-600/30 transition flex items-center justify-center space-x-2"
           >
             <i class="fa-solid fa-lock text-xs"></i>
-            <span>Pay with Paystack (Live)</span>
+            <span>Pay with Paystack</span>
           </button>
         </form>
       </div>
@@ -279,10 +185,10 @@
           <i class="fa-solid fa-check"></i>
         </div>
         <h3 class="font-display font-extrabold text-2xl text-white mb-1">
-          Payment Successful!
+          Payment Confirmed!
         </h3>
         <p class="text-xs text-zinc-400 mb-6">
-          Your tickets have been verified and emailed via Resend.
+          Your QR passes are ready below and synced with Google Sheets &amp; gate records.
         </p>
 
         <div id="issued-tickets-container" class="space-y-4 mb-6">
@@ -306,214 +212,116 @@
       </div>
     </div>
 
-    <!-- GATE SCANNER LOCKED MODAL -->
-    <div
-      id="scanner-modal"
-      class="fixed inset-0 z-50 bg-black/95 backdrop-blur-lg hidden flex items-center justify-center p-4"
-    >
-      <div
-        class="glass-panel w-full max-w-md rounded-3xl p-6 border border-zinc-800 relative glow-purple"
-      >
-        <button
-          onclick="stopScannerAndClose()"
-          class="absolute top-4 right-4 text-zinc-400 hover:text-white w-8 h-8 rounded-full bg-zinc-900 flex items-center justify-center"
-        >
-          <i class="fa-solid fa-xmark text-sm"></i>
-        </button>
-
-        <div id="scanner-auth-view">
-          <div
-            class="w-14 h-14 bg-purple-500/20 text-purple-400 rounded-full flex items-center justify-center mx-auto mb-4 text-xl border border-purple-500/40"
-          >
-            <i class="fa-solid fa-lock"></i>
-          </div>
-          <h3
-            class="font-display font-bold text-xl text-white mb-1 text-center"
-          >
-            Staff Access Required
-          </h3>
-          <p class="text-xs text-zinc-400 mb-6 text-center">
-            Enter door staff passcode to unlock entrance scanner.
-          </p>
-
-          <form onsubmit="handleScannerLogin(event)" class="space-y-4">
-            <div>
-              <label class="block text-xs font-semibold text-zinc-300 mb-1.5"
-                >Staff Passcode</label
-              >
-              <input
-                type="password"
-                id="scanner-passcode"
-                required
-                placeholder="Enter staff passcode"
-                class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-purple-500"
-              />
-            </div>
-            <button
-              type="submit"
-              class="w-full py-3.5 bg-gradient-to-r from-purple-600 to-pink-600 hover:opacity-90 text-white font-display font-bold rounded-xl text-xs transition shadow-lg"
-            >
-              Unlock Scanner
-            </button>
-          </form>
-        </div>
-
-        <div id="scanner-active-view" class="hidden">
-          <h3 class="font-display font-bold text-xl text-white mb-1">
-            Gate Entry Scanner
-          </h3>
-          <p class="text-xs text-zinc-400 mb-4">
-            Scan attendee QR tickets to validate entry.
-          </p>
-
-          <div
-            id="reader"
-            class="rounded-2xl overflow-hidden mb-4 border border-zinc-800 bg-black"
-          ></div>
-
-          <div
-            id="scan-result"
-            class="p-4 rounded-2xl bg-zinc-900 border border-zinc-800 text-center text-sm font-medium text-zinc-300"
-          >
-            Position QR code inside scanner box.
-          </div>
-
-          <button
-            onclick="stopScannerAndClose()"
-            class="mt-4 w-full py-3 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded-xl text-xs font-semibold transition"
-          >
-            Lock & Close Scanner
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- ADMIN LOGIN / DASHBOARD MODAL -->
-    <div
-      id="admin-modal"
-      class="fixed inset-0 z-50 bg-black/95 backdrop-blur-lg hidden flex items-center justify-center p-4"
-    >
-      <div
-        class="glass-panel w-full max-w-3xl rounded-3xl p-6 border border-zinc-800 relative max-h-[92vh] overflow-y-auto glow-purple"
-      >
-        <button
-          onclick="closeAdminModal()"
-          class="absolute top-4 right-4 text-zinc-400 hover:text-white w-8 h-8 rounded-full bg-zinc-900 flex items-center justify-center"
-        >
-          <i class="fa-solid fa-xmark text-sm"></i>
-        </button>
-        <div id="admin-content-area">
-          <!-- Admin login or Dashboard rendered here -->
-        </div>
-      </div>
-    </div>
-
-    <!-- JAVASCRIPT APP LOGIC -->
+    <!-- MAIN APP SCRIPT -->
     <script>
-      // --- LIVE PAYSTACK CONFIG ---
-      const PAYSTACK_PUBLIC_KEY =
-        "pk_live_0354eebbaf5c46f4ebf16b309e2828d877e84f97";
-      const ADMIN_EMAIL = "muzzcrib@gmail.com";
-      const ADMIN_PASS = "Godsent5";
-      const SCANNER_PASSCODE = "staff123";
+      const PAYSTACK_PUBLIC_KEY = "pk_live_0354eebbaf5c46f4ebf16b309e2828d877e84f97";
+      const GOOGLE_SHEET_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxTEcv5yWNK5mfrrufeBYrYo_2HFnjPOisF1EUohktuRjzx-T8jlTnzoEn2h43cDklQ/exec";
 
-      // --- MOCK DATABASE STATE ---
+      const DEFAULT_TICKETS = [
+        {
+          id: "t1",
+          name: "Early Birds",
+          price: 10000,
+          capacity: 0,
+          sold: 0,
+          desc: "Early bird tier allocation — currently sold out.",
+        },
+        {
+          id: "t2",
+          name: "Regular",
+          price: 15000,
+          capacity: 25,
+          sold: 0,
+          desc: "Standard access to THE HAZE EXPERIENCE (MUZZ CRIB) from 11:00 PM till dawn.",
+        },
+        {
+          id: "t3",
+          name: "Muzz Crib",
+          price: 35000,
+          capacity: 12,
+          sold: 0,
+          desc: "Elevated MUZZ CRIB experience with priority lounge access.",
+        },
+        {
+          id: "t4",
+          name: "Haze Void",
+          price: 60000,
+          capacity: 10,
+          sold: 0,
+          desc: "Exclusive Haze Void pass including accommodation and Muzz Crib access.",
+        },
+      ];
+
       let appState = {
         event: {
-          name: "THE HAZE EXPERINCE",
-          tagline: "MUZZ CRIB",
-          date: "Saurtday, Dec 05, 2026 • 11:00 PM WAT",
-          venue: "The Wills Luxury Apartment (Auchi, Edo State)",
+          name: "THE HAZE EXPERIENCE",
+          tagline: "MUZZ CRIB • 11:00 PM TILL DAWN",
+          date: "Saturday, Dec 05, 2026 • 11:00 PM Till Dawn",
+          venue: "The Wills Apartment, Auchi",
           flyerUrl: "4.png",
           highlights: [
             {
-              icon: "fa-shield-cat",
+              icon: "fa-moon",
+              title: "11:00 PM – Dawn",
+              desc: "All-night curated session",
+            },
+            {
+              icon: "fa-location-dot",
+              title: "The Wills Apartment",
+              desc: "Auchi, Edo State",
+            },
+            {
+              icon: "fa-shield-halved",
               title: "Private Security",
-              desc: "24/7 dedicated security protocol",
+              desc: "Controlled entry &amp; QR check-in",
+            },
+            {
+              icon: "fa-bolt",
+              title: "Instant QR Pass",
+              desc: "Verified via Paystack in NGN",
             },
           ],
         },
-        tickets: [
-          {
-            id: "t1",
-            name: "Early Bird ",
-            price: 10000,
-            capacity: 0,
-            sold: 0,
-            desc: "SOLD OUT.",
-          },
-          {
-            id: "t2",
-            name: "Standard",
-            price: 15000,
-            capacity: 19,
-            sold: 0,
-            desc: "Regular entry.",
-          },
-          {
-            id: "t3",
-            name: "MUZZ CRIB",
-            price: 35000,
-            capacity: 6,
-            sold: 0,
-            desc: "Premium Haze Experience.",
-          },
-          {
-          id: "t4",
-            name: "HAZE VOID",
-            price: 60000,
-            capacity: 10,
-            sold: 0,
-            desc: "ACCOMMODATION AND MUZZ CRIB ACESS.",
-          },
-        ],
-        orders: [
-          {
-            ref: "ZYRO-884912",
-            name: "Adekunle Gold",
-            email: "adekunle@example.com",
-            phone: "08031122334",
-            tier: "VIP Ultra Lounge",
-            qty: 1,
-            total: 85000,
-            date: "2026-11-16 14:20",
-            status: "Paid",
-            scanned: false,
-          },
-          {
-            ref: "ZYRO-992104",
-            name: "Temilade Openiyi",
-            email: "tems@example.com",
-            phone: "08098877665",
-            tier: "Early Bird Pass",
-            qty: 2,
-            total: 30000,
-            date: "2026-11-16 16:05",
-            status: "Paid",
-            scanned: true,
-          },
-        ],
-        isAdminLoggedIn: false,
-        isScannerUnlocked: false,
+        tickets: JSON.parse(JSON.stringify(DEFAULT_TICKETS)),
+        orders: [],
       };
+
+      function loadData() {
+        const storedOrders = localStorage.getItem("zyro_orders");
+        const storedTickets = localStorage.getItem("zyro_tickets");
+        if (storedOrders) {
+          appState.orders = JSON.parse(storedOrders);
+        }
+        if (storedTickets) {
+          const parsedTickets = JSON.parse(storedTickets);
+          if (Array.isArray(parsedTickets) && parsedTickets.length === DEFAULT_TICKETS.length) {
+            appState.tickets = parsedTickets;
+          }
+        }
+      }
+
+      function saveData() {
+        localStorage.setItem("zyro_orders", JSON.stringify(appState.orders));
+        localStorage.setItem("zyro_tickets", JSON.stringify(appState.tickets));
+      }
 
       let selectedTicketForCheckout = null;
       let checkoutQuantity = 1;
       let lastCreatedTickets = [];
 
-      // --- INITIALIZATION ---
       document.addEventListener("DOMContentLoaded", () => {
+        loadData();
         renderStorefront();
         startCountdown();
         init3DEffects();
       });
 
-      function switchView(view) {
+      function switchView() {
+        loadData();
         renderStorefront();
         init3DEffects();
       }
 
-      // --- 3D TILT EFFECT FOR CARDS ---
       function init3DEffects() {
         const cards = document.querySelectorAll(".tilt-card");
         cards.forEach((card) => {
@@ -527,14 +335,12 @@
             const rotateY = ((x - centerX) / centerX) * 10;
             card.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`;
           });
-
           card.addEventListener("mouseleave", () => {
-            card.style.transform = `rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)`;
+            card.style.transform = "rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)";
           });
         });
       }
 
-      // --- COUNTDOWN TIMER ---
       function startCountdown() {
         const eventDate = new Date("December 05, 2026 23:00:00").getTime();
         setInterval(() => {
@@ -543,149 +349,151 @@
           if (distance < 0) return;
 
           const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-          const hours = Math.floor(
-            (distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60),
-          );
-          const minutes = Math.floor(
-            (distance % (1000 * 60 * 60)) / (1000 * 60),
-          );
+          const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+          const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
           const seconds = Math.floor((distance % (1000 * 60)) / 1000);
 
           const el = document.getElementById("countdown-timer");
           if (el) {
             el.innerHTML = `
-                        <div class="flex space-x-3 text-center">
-                            <div class="bg-zinc-900/90 border border-zinc-800 rounded-2xl px-3.5 py-2.5 shadow-xl"><span class="block font-display font-bold text-xl text-pink-400">${days}</span><span class="text-[9px] uppercase tracking-wider text-zinc-500 font-semibold">Days</span></div>
-                            <div class="bg-zinc-900/90 border border-zinc-800 rounded-2xl px-3.5 py-2.5 shadow-xl"><span class="block font-display font-bold text-xl text-pink-400">${hours}</span><span class="text-[9px] uppercase tracking-wider text-zinc-500 font-semibold">Hours</span></div>
-                            <div class="bg-zinc-900/90 border border-zinc-800 rounded-2xl px-3.5 py-2.5 shadow-xl"><span class="block font-display font-bold text-xl text-pink-400">${minutes}</span><span class="text-[9px] uppercase tracking-wider text-zinc-500 font-semibold">Mins</span></div>
-                            <div class="bg-zinc-900/90 border border-zinc-800 rounded-2xl px-3.5 py-2.5 shadow-xl"><span class="block font-display font-bold text-xl text-pink-400">${seconds}</span><span class="text-[9px] uppercase tracking-wider text-zinc-500 font-semibold">Secs</span></div>
-                        </div>
-                    `;
+              <div class="flex flex-wrap gap-2.5 text-center">
+                <div class="bg-zinc-900/90 border border-zinc-800 rounded-2xl px-3.5 py-2.5 shadow-xl"><span class="block font-display font-bold text-xl text-pink-400">${days}</span><span class="text-[9px] uppercase tracking-wider text-zinc-500 font-semibold">Days</span></div>
+                <div class="bg-zinc-900/90 border border-zinc-800 rounded-2xl px-3.5 py-2.5 shadow-xl"><span class="block font-display font-bold text-xl text-pink-400">${hours}</span><span class="text-[9px] uppercase tracking-wider text-zinc-500 font-semibold">Hours</span></div>
+                <div class="bg-zinc-900/90 border border-zinc-800 rounded-2xl px-3.5 py-2.5 shadow-xl"><span class="block font-display font-bold text-xl text-pink-400">${minutes}</span><span class="text-[9px] uppercase tracking-wider text-zinc-500 font-semibold">Mins</span></div>
+                <div class="bg-zinc-900/90 border border-zinc-800 rounded-2xl px-3.5 py-2.5 shadow-xl"><span class="block font-display font-bold text-xl text-pink-400">${seconds}</span><span class="text-[9px] uppercase tracking-wider text-zinc-500 font-semibold">Secs</span></div>
+              </div>
+            `;
           }
         }, 1000);
       }
 
-      // --- RENDER STOREFRONT ---
       function renderStorefront() {
         const container = document.getElementById("main-container");
-        let ticketsHTML = appState.tickets
+        const ticketsHTML = appState.tickets
           .map((t) => {
-            const available = t.capacity - t.sold;
+            const available = Math.max(0, t.capacity - t.sold);
             const soldOut = available <= 0;
+            const maxSelect = Math.min(5, available);
+
+            let qtyOptions = "";
+            for (let q = 1; q <= maxSelect; q++) {
+              qtyOptions += `<option value="${q}">${q} ${q === 1 ? "Ticket" : "Tickets"}</option>`;
+            }
+
             return `
-                    <div class="tilt-card glass-panel rounded-3xl p-6 border border-zinc-800 hover:border-pink-500/50 transition flex flex-col justify-between shadow-2xl relative overflow-hidden group">
-                        <div class="absolute -right-12 -top-12 w-32 h-32 bg-pink-500/10 rounded-full blur-2xl group-hover:bg-pink-500/20 transition"></div>
-                        <div class="tilt-card-content">
-                            <div class="flex justify-between items-start mb-3">
-                                <h4 class="font-display font-bold text-xl text-white">${t.name}</h4>
-                                <span class="text-xs font-semibold px-3 py-1 rounded-full ${soldOut ? "bg-red-500/20 text-red-400 border border-red-500/30" : "bg-pink-500/20 text-pink-400 border border-pink-500/30"}">
-                                    ${soldOut ? "Sold Out" : `${available} left`}
-                                </span>
-                            </div>
-                            <p class="text-xs text-zinc-400 mb-6 leading-relaxed">${t.desc}</p>
-                            <div class="font-display font-black text-3xl text-white mb-6">₦${t.price.toLocaleString()}</div>
+              <div class="tilt-card glass-panel rounded-3xl p-6 border border-zinc-800 hover:border-pink-500/50 transition flex flex-col justify-between shadow-2xl relative overflow-hidden group">
+                <div class="absolute -right-12 -top-12 w-32 h-32 bg-pink-500/10 rounded-full blur-2xl group-hover:bg-pink-500/20 transition"></div>
+                <div class="tilt-card-content">
+                  <div class="flex justify-between items-start gap-2 mb-3">
+                    <h4 class="font-display font-bold text-xl text-white">${t.name}</h4>
+                    <span class="text-xs font-semibold px-3 py-1 rounded-full shrink-0 ${
+                      soldOut
+                        ? "bg-red-500/20 text-red-400 border border-red-500/30"
+                        : "bg-pink-500/20 text-pink-400 border border-pink-500/30"
+                    }">
+                      ${soldOut ? "Sold Out" : `${available} left`}
+                    </span>
+                  </div>
+                  <p class="text-xs text-zinc-400 mb-6 leading-relaxed">${t.desc}</p>
+                  <div class="font-display font-black text-3xl text-white mb-6">₦${t.price.toLocaleString()}</div>
+                </div>
+                <div class="tilt-card-content">
+                  ${
+                    !soldOut
+                      ? `
+                        <div class="flex items-center space-x-2 mb-3">
+                          <span class="text-xs text-zinc-400 font-medium">Quantity:</span>
+                          <select id="qty-${t.id}" class="bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-pink-500">
+                            ${qtyOptions}
+                          </select>
                         </div>
-                        <div class="tilt-card-content">
-                            ${
-                              !soldOut
-                                ? `
-                                <div class="flex items-center space-x-2 mb-3">
-                                    <span class="text-xs text-zinc-400 font-medium">Quantity:</span>
-                                    <select id="qty-${t.id}" class="bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-pink-500">
-                                        <option value="1">1 Ticket</option>
-                                        <option value="2">2 Tickets</option>
-                                        <option value="3">3 Tickets</option>
-                                        <option value="5">5 Tickets</option>
-                                    </select>
-                                </div>
-                                <button onclick="openCheckout('${t.id}')" class="w-full py-3.5 bg-gradient-to-r from-pink-600 to-purple-600 hover:opacity-90 text-white font-display font-bold rounded-2xl text-xs transition shadow-lg shadow-pink-600/30">
-                                    Get Tickets
-                                </button>
-                            `
-                                : `
-                                <button disabled class="w-full py-3.5 bg-zinc-900 text-zinc-600 font-display font-bold rounded-2xl text-xs cursor-not-allowed border border-zinc-800">
-                                    Sold Out
-                                </button>
-                            `
-                            }
-                        </div>
-                    </div>
-                `;
+                        <button onclick="openCheckout('${t.id}')" class="w-full py-3.5 bg-gradient-to-r from-pink-600 to-purple-600 hover:opacity-90 text-white font-display font-bold rounded-2xl text-xs transition shadow-lg shadow-pink-600/30 flex items-center justify-center space-x-2">
+                          <i class="fa-solid fa-credit-card"></i>
+                          <span>Pay with Paystack</span>
+                        </button>
+                      `
+                      : `
+                        <button disabled class="w-full py-3.5 bg-zinc-900 text-zinc-600 font-display font-bold rounded-2xl text-xs cursor-not-allowed border border-zinc-800">
+                          Sold Out
+                        </button>
+                      `
+                  }
+                </div>
+              </div>
+            `;
           })
           .join("");
 
-        let highlightsHTML = appState.event.highlights
+        const highlightsHTML = appState.event.highlights
           .map(
             (h) => `
-                <div class="tilt-card glass-panel rounded-2xl p-5 border border-zinc-800 flex flex-col justify-between shadow-lg">
-                    <div class="w-10 h-10 rounded-xl bg-pink-500/10 border border-pink-500/30 flex items-center justify-center text-pink-400 mb-3 text-base">
-                        <i class="fa-solid ${h.icon}"></i>
-                    </div>
-                    <div>
-                        <h4 class="font-display font-bold text-white text-sm mb-1">${h.title}</h4>
-                        <p class="text-xs text-zinc-400 leading-relaxed">${h.desc}</p>
-                    </div>
+              <div class="tilt-card glass-panel rounded-2xl p-5 border border-zinc-800 flex flex-col justify-between shadow-lg">
+                <div class="w-10 h-10 rounded-xl bg-pink-500/10 border border-pink-500/30 flex items-center justify-center text-pink-400 mb-3 text-base">
+                  <i class="fa-solid ${h.icon}"></i>
                 </div>
-            `,
+                <div>
+                  <h4 class="font-display font-bold text-white text-sm mb-1">${h.title}</h4>
+                  <p class="text-xs text-zinc-400 leading-relaxed">${h.desc}</p>
+                </div>
+              </div>
+            `
           )
           .join("");
 
         container.innerHTML = `
-                <!-- HERO BANNER (PORTRAIT 9:16 FLYER) -->
-                <div class="tilt-card relative rounded-3xl overflow-hidden mb-10 border border-zinc-800 shadow-2xl">
-                    <div class="absolute inset-0 bg-gradient-to-t from-[#0a0a0c] via-[#0a0a0c]/40 to-transparent z-10"></div>
-                    <img src="${appState.event.flyerUrl}" alt="Event Flyer" class="w-full h-[520px] sm:h-[620px] object-cover">
-                    <div class="absolute bottom-0 left-0 right-0 p-6 sm:p-8 z-20">
-                        <div class="inline-block px-3 py-1 rounded-full bg-pink-500/20 border border-pink-500/30 text-pink-300 text-[11px] font-bold uppercase tracking-wider mb-3 backdrop-blur-md">Official Event Experience</div>
-                        <h1 class="font-display font-black text-3xl sm:text-5xl text-white tracking-tight mb-2">${appState.event.name}</h1>
-                        <p class="text-xs sm:text-sm text-zinc-300 mb-4 max-w-xl leading-relaxed">${appState.event.tagline}</p>
-                        
-                        <div class="flex flex-wrap gap-4 text-xs text-zinc-300 mb-5 font-medium">
-                            <div class="flex items-center space-x-2 bg-black/50 px-3.5 py-2 rounded-xl border border-white/10 backdrop-blur-md"><i class="fa-regular fa-calendar text-pink-400"></i><span>${appState.event.date}</span></div>
-                            <div class="flex items-center space-x-2 bg-black/50 px-3.5 py-2 rounded-xl border border-white/10 backdrop-blur-md"><i class="fa-solid fa-location-dot text-pink-400"></i><span>${appState.event.venue}</span></div>
-                        </div>
+          <div class="tilt-card relative rounded-3xl overflow-hidden mb-10 border border-zinc-800 shadow-2xl">
+            <div class="absolute inset-0 bg-gradient-to-t from-[#0a0a0c] via-[#0a0a0c]/40 to-transparent z-10"></div>
+            <img src="${appState.event.flyerUrl}" alt="Event Flyer" class="w-full h-[520px] sm:h-[620px] object-cover">
+            <div class="absolute bottom-0 left-0 right-0 p-6 sm:p-8 z-20">
+              <div class="inline-block px-3 py-1 rounded-full bg-pink-500/20 border border-pink-500/30 text-pink-300 text-[11px] font-bold uppercase tracking-wider mb-3 backdrop-blur-md">Official Event Experience</div>
+              <h1 class="font-display font-black text-3xl sm:text-5xl text-white tracking-tight mb-2">${appState.event.name}</h1>
+              <p class="text-xs sm:text-sm text-zinc-300 mb-4 max-w-xl leading-relaxed">${appState.event.tagline}</p>
 
-                        <div id="countdown-timer"></div>
-                    </div>
-                </div>
+              <div class="flex flex-wrap gap-4 text-xs text-zinc-300 mb-5 font-medium">
+                <div class="flex items-center space-x-2 bg-black/50 px-3.5 py-2 rounded-xl border border-white/10 backdrop-blur-md"><i class="fa-regular fa-calendar text-pink-400"></i><span>${appState.event.date}</span></div>
+                <div class="flex items-center space-x-2 bg-black/50 px-3.5 py-2 rounded-xl border border-white/10 backdrop-blur-md"><i class="fa-solid fa-location-dot text-pink-400"></i><span>${appState.event.venue}</span></div>
+              </div>
 
-                <!-- TICKETS SECTION -->
-                <div class="mb-12">
-                    <div class="flex items-center justify-between mb-6">
-                        <h3 class="font-display font-extrabold text-2xl text-white">Select Tickets</h3>
-                        <span class="text-xs text-zinc-400 bg-zinc-900 px-3 py-1.5 rounded-xl border border-zinc-800">Secure Paystack Checkout</span>
-                    </div>
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                        ${ticketsHTML}
-                    </div>
-                </div>
+              <div id="countdown-timer"></div>
+            </div>
+          </div>
 
-                <!-- EVENT HIGHLIGHTS SECTION -->
-                <div class="mb-12">
-                    <h3 class="font-display font-extrabold text-2xl text-white mb-6">Event Experience</h3>
-                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                        ${highlightsHTML}
-                    </div>
-                </div>
-            `;
+          <div class="mb-12">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-6">
+              <h3 class="font-display font-extrabold text-2xl text-white">Select Tickets</h3>
+              <span class="text-xs text-zinc-400 bg-zinc-900 px-3 py-1.5 rounded-xl border border-zinc-800"><i class="fa-solid fa-lock text-pink-400 mr-1.5"></i>Paystack NGN Checkout</span>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              ${ticketsHTML}
+            </div>
+          </div>
+
+          <div class="mb-12">
+            <h3 class="font-display font-extrabold text-2xl text-white mb-6">Event Experience</h3>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              ${highlightsHTML}
+            </div>
+          </div>
+        `;
         init3DEffects();
       }
 
-      // --- CHECKOUT & PAYSTACK INTEGRATION ---
       function openCheckout(ticketId) {
-        selectedTicketForCheckout = appState.tickets.find(
-          (t) => t.id === ticketId,
-        );
+        selectedTicketForCheckout = appState.tickets.find((t) => t.id === ticketId);
+        if (!selectedTicketForCheckout) return;
+
+        const available = Math.max(0, selectedTicketForCheckout.capacity - selectedTicketForCheckout.sold);
+        if (available <= 0) {
+          alert("This ticket tier is sold out.");
+          return;
+        }
+
         const qtySelect = document.getElementById(`qty-${ticketId}`);
-        checkoutQuantity = qtySelect ? parseInt(qtySelect.value) : 1;
+        checkoutQuantity = qtySelect ? Math.min(parseInt(qtySelect.value, 10), available) : 1;
 
-        document.getElementById("checkout-tier-label").innerText =
-          `${selectedTicketForCheckout.name} (${checkoutQuantity}x)`;
-        document.getElementById("checkout-qty-label").innerText =
-          `Qty: ${checkoutQuantity}`;
-        document.getElementById("checkout-total-price").innerText =
-          `₦${(selectedTicketForCheckout.price * checkoutQuantity).toLocaleString()}`;
-
+        document.getElementById("checkout-tier-label").innerText = `${selectedTicketForCheckout.name} (${checkoutQuantity}x)`;
+        document.getElementById("checkout-qty-label").innerText = `Qty: ${checkoutQuantity}`;
+        document.getElementById("checkout-total-price").innerText = `₦${(selectedTicketForCheckout.price * checkoutQuantity).toLocaleString()}`;
         document.getElementById("checkout-modal").classList.remove("hidden");
       }
 
@@ -695,40 +503,34 @@
 
       function processPaystackPayment(e) {
         e.preventDefault();
-        const name = document.getElementById("buyer-name").value;
-        const email = document.getElementById("buyer-email").value;
-        const phone = document.getElementById("buyer-phone").value;
+        if (!selectedTicketForCheckout) return;
+
+        const name = document.getElementById("buyer-name").value.trim();
+        const email = document.getElementById("buyer-email").value.trim();
+        const phone = document.getElementById("buyer-phone").value.trim();
         const totalAmount = selectedTicketForCheckout.price * checkoutQuantity;
+        const txRef = `ZYRO-${Date.now()}-${Math.floor(100 + Math.random() * 900)}`;
 
         closeCheckoutModal();
 
-        let handler = PaystackPop.setup({
+        const handler = PaystackPop.setup({
           key: PAYSTACK_PUBLIC_KEY,
           email: email,
           amount: totalAmount * 100,
           currency: "NGN",
+          ref: txRef,
           metadata: {
             custom_fields: [
-              {
-                display_name: "Attendee Name",
-                variable_name: "attendee_name",
-                value: name,
-              },
-              {
-                display_name: "Ticket Tier",
-                variable_name: "ticket_tier",
-                value: selectedTicketForCheckout.name,
-              },
-              {
-                display_name: "Quantity",
-                variable_name: "quantity",
-                value: checkoutQuantity,
-              },
+              { display_name: "Attendee Name", variable_name: "attendee_name", value: name },
+              { display_name: "Phone Number", variable_name: "phone_number", value: phone },
+              { display_name: "Ticket Tier", variable_name: "ticket_tier", value: selectedTicketForCheckout.name },
+              { display_name: "Quantity", variable_name: "quantity", value: checkoutQuantity },
+              { display_name: "Event", variable_name: "event_name", value: appState.event.name },
             ],
           },
           callback: function (response) {
             handleSuccessfulOrder({
-              ref: response.reference,
+              ref: response.reference || txRef,
               name: name,
               email: email,
               phone: phone,
@@ -741,18 +543,33 @@
             });
           },
           onClose: function () {
-            alert("Transaction was cancelled.");
+            alert("Paystack payment window was closed before completion.");
           },
         });
         handler.openIframe();
       }
 
       function handleSuccessfulOrder(orderData) {
+        // 1. Update ticket counts & local state
         const tierObj = appState.tickets.find((t) => t.name === orderData.tier);
-        if (tierObj) tierObj.sold += orderData.qty;
+        if (tierObj) {
+          tierObj.sold = Math.min(tierObj.capacity, tierObj.sold + orderData.qty);
+        }
 
         appState.orders.unshift(orderData);
+        saveData();
 
+        // 2. Automatically append attendee record to Google Sheet
+        fetch(GOOGLE_SHEET_WEB_APP_URL, {
+          method: "POST",
+          mode: "no-cors",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(orderData),
+        }).catch((err) => console.error("Google Sheet sync error:", err));
+
+        // 3. Prepare QR pass data & open success modal
         lastCreatedTickets = [];
         for (let i = 1; i <= orderData.qty; i++) {
           lastCreatedTickets.push({
@@ -773,22 +590,22 @@
         container.innerHTML = lastCreatedTickets
           .map(
             (t, idx) => `
-                <div class="bg-zinc-900 border border-zinc-800 rounded-2xl p-4 text-left relative shadow-xl">
-                    <div class="flex justify-between items-start mb-2">
-                        <div>
-                            <span class="text-[10px] font-bold text-pink-400 uppercase tracking-wider">${t.tier}</span>
-                            <h4 class="font-display font-bold text-white text-base">${t.name}</h4>
-                        </div>
-                        <span class="text-[10px] bg-zinc-800 text-zinc-400 px-2.5 py-1 rounded-full font-mono">Pass #${idx + 1}</span>
-                    </div>
-                    <div class="text-xs text-zinc-400 space-y-1 mb-4">
-                        <div><i class="fa-regular fa-calendar mr-1.5 text-pink-400"></i> ${t.date}</div>
-                        <div><i class="fa-solid fa-location-dot mr-1.5 text-pink-400"></i> ${t.venue}</div>
-                        <div class="font-mono text-zinc-500 text-[10px]">ID: ${t.ticketId}</div>
-                    </div>
-                    <div id="qrcode-${idx}" class="flex justify-center bg-white p-2.5 rounded-xl w-32 h-32 mx-auto shadow-md"></div>
+              <div class="bg-zinc-900 border border-zinc-800 rounded-2xl p-4 text-left relative shadow-xl">
+                <div class="flex justify-between items-start mb-2">
+                  <div>
+                    <span class="text-[10px] font-bold text-pink-400 uppercase tracking-wider">${t.tier}</span>
+                    <h4 class="font-display font-bold text-white text-base">${t.name}</h4>
+                  </div>
+                  <span class="text-[10px] bg-zinc-800 text-zinc-400 px-2.5 py-1 rounded-full font-mono">Pass #${idx + 1}</span>
                 </div>
-            `,
+                <div class="text-xs text-zinc-400 space-y-1 mb-4">
+                  <div><i class="fa-regular fa-calendar mr-1.5 text-pink-400"></i> ${t.date}</div>
+                  <div><i class="fa-solid fa-location-dot mr-1.5 text-pink-400"></i> ${t.venue}</div>
+                  <div class="font-mono text-zinc-500 text-[10px]">ID: ${t.ticketId}</div>
+                </div>
+                <div id="qrcode-${idx}" class="flex justify-center bg-white p-2.5 rounded-xl w-32 h-32 mx-auto shadow-md"></div>
+              </div>
+            `
           )
           .join("");
 
@@ -797,12 +614,9 @@
         setTimeout(() => {
           lastCreatedTickets.forEach((t, idx) => {
             const el = document.getElementById(`qrcode-${idx}`);
+            if (!el) return;
             el.innerHTML = "";
-            new QRCode(el, {
-              text: t.ticketId,
-              width: 110,
-              height: 110,
-            });
+            new QRCode(el, { text: t.ticketId, width: 110, height: 110 });
           });
         }, 100);
       }
@@ -812,10 +626,9 @@
         renderStorefront();
       }
 
-      // --- PDF GENERATION WITH jspdf ---
       function downloadAllPDFs() {
         const { jsPDF } = window.jspdf;
-        lastCreatedTickets.forEach((t, idx) => {
+        lastCreatedTickets.forEach((t) => {
           const doc = new jsPDF();
           doc.setFillColor(10, 10, 12);
           doc.rect(0, 0, 210, 297, "F");
@@ -838,231 +651,6 @@
 
           doc.save(`ZYRO-Ticket-${t.ticketId}.pdf`);
         });
-      }
-
-      // --- GATE SCANNER WITH AUTHENTICATION ---
-      let html5QrCode = null;
-
-      function openScannerModal() {
-        document.getElementById("scanner-modal").classList.remove("hidden");
-        if (appState.isScannerUnlocked) {
-          showScannerCameraView();
-        } else {
-          document
-            .getElementById("scanner-auth-view")
-            .classList.remove("hidden");
-          document
-            .getElementById("scanner-active-view")
-            .classList.add("hidden");
-        }
-      }
-
-      function handleScannerLogin(e) {
-        e.preventDefault();
-        const passcode = document.getElementById("scanner-passcode").value;
-        if (passcode === SCANNER_PASSCODE) {
-          appState.isScannerUnlocked = true;
-          showScannerCameraView();
-        } else {
-          alert("Invalid staff passcode.");
-        }
-      }
-
-      function showScannerCameraView() {
-        document.getElementById("scanner-auth-view").classList.add("hidden");
-        document
-          .getElementById("scanner-active-view")
-          .classList.remove("hidden");
-
-        setTimeout(() => {
-          if (!html5QrCode) {
-            html5QrCode = new Html5Qrcode("reader");
-          }
-          html5QrCode
-            .start(
-              { facingMode: "environment" },
-              { fps: 10, qrbox: 250 },
-              onScanSuccess,
-              onScanFailure,
-            )
-            .catch((err) => {
-              console.error("Camera error:", err);
-              document.getElementById("scan-result").innerHTML =
-                `<span class="text-red-400">Camera access error or unavailable.</span>`;
-            });
-        }, 150);
-      }
-
-      function onScanSuccess(decodedText, decodedResult) {
-        const resultBox = document.getElementById("scan-result");
-        const matchedOrder = appState.orders.find((o) =>
-          decodedText.includes(o.ref),
-        );
-
-        if (matchedOrder) {
-          if (matchedOrder.scanned) {
-            resultBox.innerHTML = `<div class="text-amber-400 font-bold p-2 bg-amber-500/10 rounded-xl border border-amber-500/20"><i class="fa-solid fa-triangle-exclamation mr-1"></i> ALREADY USED<br><span class="text-xs text-zinc-300 font-normal">${matchedOrder.name} (${matchedOrder.tier})</span></div>`;
-          } else {
-            matchedOrder.scanned = true;
-            resultBox.innerHTML = `<div class="text-emerald-400 font-bold p-2 bg-emerald-500/10 rounded-xl border border-emerald-500/20"><i class="fa-solid fa-circle-check mr-1"></i> ACCESS GRANTED<br><span class="text-xs text-zinc-300 font-normal">${matchedOrder.name} - ${matchedOrder.tier}</span></div>`;
-          }
-        } else {
-          resultBox.innerHTML = `<div class="text-red-400 font-bold p-2 bg-red-500/10 rounded-xl border border-red-500/20"><i class="fa-solid fa-circle-xmark mr-1"></i> INVALID TICKET ID: ${decodedText}</div>`;
-        }
-      }
-
-      function onScanFailure(error) {}
-
-      function stopScannerAndClose() {
-        appState.isScannerUnlocked = false; // Lock again on close
-        const passcodeEl = document.getElementById("scanner-passcode");
-        if (passcodeEl) passcodeEl.value = "";
-
-        if (html5QrCode) {
-          html5QrCode
-            .stop()
-            .then(() => {
-              document.getElementById("scanner-modal").classList.add("hidden");
-            })
-            .catch((err) => {
-              document.getElementById("scanner-modal").classList.add("hidden");
-            });
-        } else {
-          document.getElementById("scanner-modal").classList.add("hidden");
-        }
-      }
-
-      // --- ADMIN DASHBOARD ---
-      function openAdminModal() {
-        document.getElementById("admin-modal").classList.remove("hidden");
-        renderAdminContent();
-      }
-
-      function closeAdminModal() {
-        document.getElementById("admin-modal").classList.add("hidden");
-      }
-
-      function renderAdminContent() {
-        const container = document.getElementById("admin-content-area");
-        if (!appState.isAdminLoggedIn) {
-          container.innerHTML = `
-                    <div class="max-w-sm mx-auto text-center py-6">
-                        <div class="w-14 h-14 bg-pink-500/20 text-pink-500 rounded-full flex items-center justify-center mx-auto mb-4 text-xl border border-pink-500/40 glow-pink">
-                            <i class="fa-solid fa-shield-halved"></i>
-                        </div>
-                        <h3 class="font-display font-bold text-2xl text-white mb-1">Admin Portal Login</h3>
-                        <p class="text-xs text-zinc-400 mb-6">Enter admin credentials to manage event & tickets.</p>
-                        
-                        <form onsubmit="handleAdminLogin(event)" class="space-y-4 text-left">
-                            <div>
-                                <label class="block text-xs font-semibold text-zinc-300 mb-1.5">Admin Email</label>
-                                <input type="email" id="admin-email" required placeholder="admin@zyro.com" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-xs text-white">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-semibold text-zinc-300 mb-1.5">Password</label>
-                                <input type="password" id="admin-pass" required placeholder="Enter password" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-xs text-white">
-                            </div>
-                            <button type="submit" class="w-full py-3.5 bg-gradient-to-r from-pink-600 to-purple-600 hover:opacity-90 text-white font-display font-bold rounded-xl text-xs transition shadow-lg shadow-pink-600/30">
-                                Access Admin Dashboard
-                            </button>
-                        </form>
-                    </div>
-                `;
-        } else {
-          // Compute accurate live figures from database state
-          const totalRevenue = appState.orders.reduce(
-            (sum, o) => sum + o.total,
-            0,
-          );
-          const totalSoldTickets = appState.orders.reduce(
-            (sum, o) => sum + o.qty,
-            0,
-          );
-          const totalOrdersCount = appState.orders.length;
-          const checkedInCount = appState.orders.filter(
-            (o) => o.scanned,
-          ).length;
-
-          let ordersHTML = appState.orders
-            .map(
-              (o) => `
-                    <tr class="border-b border-zinc-800/60 text-xs">
-                        <td class="py-3 px-2 font-mono text-pink-400">${o.ref}</td>
-                        <td class="py-3 px-2 font-medium text-white">${o.name}</td>
-                        <td class="py-3 px-2 text-zinc-300">${o.tier} (${o.qty}x)</td>
-                        <td class="py-3 px-2 font-display font-semibold text-white">₦${o.total.toLocaleString()}</td>
-                        <td class="py-3 px-2"><span class="px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-400 text-[10px] font-semibold">${o.status}</span></td>
-                    </tr>
-                `,
-            )
-            .join("");
-
-          container.innerHTML = `
-                    <div class="flex justify-between items-center mb-6">
-                        <div>
-                            <h3 class="font-display font-bold text-xl text-white">Admin Dashboard</h3>
-                            <p class="text-xs text-zinc-400">Accurate live analytics & ticket management</p>
-                        </div>
-                        <button onclick="appState.isAdminLoggedIn = false; renderAdminContent();" class="px-3 py-1.5 rounded-xl bg-zinc-800 text-xs text-zinc-300 hover:bg-zinc-700">Logout</button>
-                    </div>
-
-                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
-                        <div class="bg-zinc-900/90 border border-zinc-800 rounded-2xl p-4 shadow-lg">
-                            <span class="text-[10px] text-zinc-500 uppercase font-semibold">Total Revenue</span>
-                            <div class="font-display font-black text-lg sm:text-xl text-white mt-1">₦${totalRevenue.toLocaleString()}</div>
-                        </div>
-                        <div class="bg-zinc-900/90 border border-zinc-800 rounded-2xl p-4 shadow-lg">
-                            <span class="text-[10px] text-zinc-500 uppercase font-semibold">Tickets Sold</span>
-                            <div class="font-display font-black text-lg sm:text-xl text-pink-400 mt-1">${totalSoldTickets}</div>
-                        </div>
-                        <div class="bg-zinc-900/90 border border-zinc-800 rounded-2xl p-4 shadow-lg">
-                            <span class="text-[10px] text-zinc-500 uppercase font-semibold">Total Orders</span>
-                            <div class="font-display font-black text-lg sm:text-xl text-white mt-1">${totalOrdersCount}</div>
-                        </div>
-                        <div class="bg-zinc-900/90 border border-zinc-800 rounded-2xl p-4 shadow-lg">
-                            <span class="text-[10px] text-zinc-500 uppercase font-semibold">Checked-In Gate</span>
-                            <div class="font-display font-black text-lg sm:text-xl text-emerald-400 mt-1">${checkedInCount}</div>
-                        </div>
-                    </div>
-
-                    <div class="mb-6">
-                        <h4 class="font-display font-bold text-sm text-white mb-3">Recent Transactions & Orders</h4>
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-left">
-                                <thead>
-                                    <tr class="border-b border-zinc-800 text-[10px] text-zinc-500 uppercase">
-                                        <th class="py-2.5 px-2">Ref</th>
-                                        <th class="py-2.5 px-2">Customer</th>
-                                        <th class="py-2.5 px-2">Tier</th>
-                                        <th class="py-2.5 px-2">Total</th>
-                                        <th class="py-2.5 px-2">Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    ${ordersHTML}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    <div class="border-t border-zinc-800 pt-4 flex justify-between">
-                        <button onclick="alert('Event settings updated successfully.')" class="px-4 py-2.5 bg-gradient-to-r from-pink-600 to-purple-600 hover:opacity-90 text-white rounded-xl text-xs font-semibold shadow-lg">Save Event Config</button>
-                        <button onclick="closeAdminModal()" class="px-4 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-white rounded-xl text-xs font-semibold">Close Dashboard</button>
-                    </div>
-                `;
-        }
-      }
-
-      function handleAdminLogin(e) {
-        e.preventDefault();
-        const email = document.getElementById("admin-email").value;
-        const pass = document.getElementById("admin-pass").value;
-        if (email === ADMIN_EMAIL && pass === ADMIN_PASS) {
-          appState.isAdminLoggedIn = true;
-          renderAdminContent();
-        } else {
-          alert("Invalid admin credentials.");
-        }
       }
     </script>
   </body>
